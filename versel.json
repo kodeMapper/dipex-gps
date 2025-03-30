@@ -1,0 +1,55 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "server.js",
+        "use": "@vercel/node"
+      },
+      {
+        "src": "index.html",
+        "use": "@vercel/static"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/",
+        "dest": "index.html"
+      },
+      {
+        "src": "/latest-location",
+        "dest": "server.js"
+      },
+      {
+        "src": "/update-location",
+        "dest": "server.js"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "index.html"
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/(.*)",
+        "destination": "server.js"
+      }
+    ],
+    "headers": [
+      {
+        "source": "/(.*)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          },
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }
+        ]
+      }
+    ],
+    "env": {
+      "API_KEY": "d94ac439be13424fbe4657fa056c688f"
+    }
+  }
