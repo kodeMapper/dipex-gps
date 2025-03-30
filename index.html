@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartVision - Family Location Tracker</title>
+  <!-- Leaflet CSS/JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3f37c9;
+      --accent-color: #4cc9f0;
+      --light-color: #f8f9fa;
+      --dark-color: #212529;
+      --success-color: #4bb543;
+      --warning-color: #ffcc00;
+      --danger-color: #ff3333;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fa;
+      color: var(--dark-color);
+      overflow-x: hidden;
+    }
+    
+    #app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* Sidebar */
+    #sidebar {
+      width: 300px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 20px;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .sidebar-collapsed {
+      width: 70px !important;
+    }
+    
+    .sidebar-collapsed .logo h1,
+    .sidebar-collapsed .user-info,
+    .sidebar-collapsed .menu-text,
+    .sidebar-collapsed .sidebar-footer {
+      display: none;
+    }
+    
+    .sidebar-collapsed .logo {
+      justify-content: center;
+    }
+    
+    .sidebar-collapsed .sidebar-menu a {
+      justify-content: center;
+    }
+    
+    .sidebar-collapsed .sidebar-menu i {
+      margin-right: 0;
+      font-size: 18px;
+    }
+    
+    .toggle-sidebar {
+      position: absolute;
+      top: 20px;
+      right: -15px;
+      background: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 1001;
+    }
+    
+    .toggle-sidebar i {
+      color: var(--primary-color);
+      transition: transform 0.3s ease;
+    }
+    
+    .sidebar-collapsed .toggle-sidebar i {
+      transform: rotate(180deg);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .logo i {
+      font-size: 28px;
+      margin-right: 10px;
+      color: var(--accent-color);
+    }
+    
+    .logo h1 {
+      font-size: 20px;
+      font-weight: 600;
+      transition: opacity 0.3s ease;
+    }
+    
+    .user-profile {
+      display: flex;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    
+    .user-info h3 {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+    
+    .user-info p {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    .sidebar-menu {
+      list-style: none;
+    }
+    
+    .sidebar-menu li {
+      margin-bottom: 10px;
+    }
+    
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      color: white;
+      text-decoration: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+    
+    .sidebar-menu a:hover, .sidebar-menu a.active {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-menu i {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+      transition: margin 0.3s ease;
+    }
+    
+    .menu-text {
+      transition: opacity 0.3s ease;
+    }
+    
+    .sidebar-footer {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      font-size: 12px;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+    
+    /* Main Content */
+    #main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header */
+    #header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background-color: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 999;
+    }
+    
+    .header-left h2 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+    }
+    
+    .notification-bell {
+      position: relative;
+      margin-right: 20px;
+      cursor: pointer;
+    }
+    
+    .notification-bell i {
+      font-size: 20px;
+      color: var(--dark-color);
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: var(--danger-color);
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+    }
+    
+    /* Map Container */
+    #map-container {
+      flex: 1;
+      position: relative;
+    }
+    
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+    
+    /* Map Controls */
+    .map-controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .control-btn {
+      background-color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dark-color);
+      transition: all 0.3s ease;
+    }
+    
+    .control-btn:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    /* Map Type Selector */
+    .map-type-selector {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      background-color: white;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .map-type-btn {
+      padding: 8px 15px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .map-type-btn i {
+      margin-right: 8px;
+    }
+    
+    .map-type-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    /* Status Card */
+    .status-card {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+      background-color: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      width: 300px;
+    }
+    
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .status-header h3 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background-color: var(--success-color);
+      color: white;
+    }
+    
+    .status-details {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .detail-label {
+      font-size: 13px;
+      color: #666;
+    }
+    
+    .detail-value {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    /* History Button */
+    .history-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 15px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .history-btn i {
+      margin-right: 8px;
+    }
+    
+    /* Custom Popup */
+    .leaflet-popup-content {
+      margin: 10px;
+    }
+    
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+    }
+    
+    .custom-popup {
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .popup-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--primary-color);
+    }
+    
+    .popup-address {
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    
+    .popup-time {
+      font-size: 11px;
+      color: #666;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      #sidebar {
+        width: 70px;
+        overflow: hidden;
+      }
+      
+      .logo h1, .user-info, .menu-text {
+        display: none;
+      }
+      
+      .logo {
+        justify-content: center;
+      }
+      
+      .sidebar-menu a {
+        justify-content: center;
+      }
+      
+      .sidebar-menu i {
+        margin-right: 0;
+        font-size: 18px;
+      }
+      
+      .status-card {
+        width: calc(100% - 40px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app-container">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="toggle-sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </div>
+      <div class="logo">
+        <i class="fas fa-map-marker-alt"></i>
+        <h1>SmartVision</h1>
+      </div>
+      
+      <div class="user-profile">
+        <div class="user-avatar">SC</div>
+        <div class="user-info">
+          <h3>Saniya</h3>
+          <p>Family Member</p>
+        </div>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li><a href="#" class="active"><i class="fas fa-map"></i> <span class="menu-text">Live Tracking</span></a></li>
+        <li><a href="#"><i class="fas fa-history"></i> <span class="menu-text">Location History</span></a></li>
+        <li><a href="#"><i class="fas fa-bell"></i> <span class="menu-text">Notifications</span></a></li>
+        <li><a href="#"><i class="fas fa-user-shield"></i> <span class="menu-text">Safety Zones</span></a></li>
+        <li><a href="#"><i class="fas fa-cog"></i> <span class="menu-text">Settings</span></a></li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        SmartVision v1.0 © 2025
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div id="main-content">
+      <!-- Header -->
+      <div id="header">
+        <div class="header-left">
+          <h2>Live Location Tracking</h2>
+        </div>
+        <div class="header-right">
+          <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge">3</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Map Container -->
+      <div id="map-container">
+        <div id="map"></div>
+        
+        <!-- Map Type Selector -->
+        <div class="map-type-selector">
+          <button class="map-type-btn active" id="satellite-btn">
+            <i class="fas fa-satellite"></i> Satellite
+          </button>
+          <button class="map-type-btn" id="street-btn">
+            <i class="fas fa-road"></i> Street
+          </button>
+        </div>
+        
+        <!-- Map Controls -->
+        <div class="map-controls">
+          <button class="control-btn" id="zoom-in" title="Zoom In"><i class="fas fa-plus"></i></button>
+          <button class="control-btn" id="zoom-out" title="Zoom Out"><i class="fas fa-minus"></i></button>
+          <button class="control-btn" id="locate-btn" title="Locate"><i class="fas fa-location-arrow"></i></button>
+        </div>
+        
+        <!-- Status Card -->
+        <div class="status-card">
+          <div class="status-header">
+            <h3>Current Status</h3>
+            <span class="status-badge">Safe</span>
+          </div>
+          <div class="status-details">
+            <div class="detail-row">
+              <span class="detail-label">Last Updated:</span>
+              <span class="detail-value" id="last-updated">Just now</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Battery:</span>
+              <span class="detail-value" id="battery-status">85%</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Signal:</span>
+              <span class="detail-value" id="signal-status">Strong</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Speed:</span>
+              <span class="detail-value" id="speed-status">0 km/h</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- History Button -->
+        <button class="history-btn" id="show-history">
+          <i class="fas fa-history"></i> View History
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_KEY = "d94ac439be13424fbe4657fa056c688f"; // Your Geoapify key
+    let map, marker, updateInterval;
+    let lastPosition = { lat: 18.528063055307484, lng: 73.85322399573165 };
+    let isFirstUpdate = true;
+    let satelliteLayer, streetLayer, currentLayer;
+
+    // Initialize map
+    function initMap() {
+      // Create map with higher zoom capability
+      map = L.map('map', {
+        zoomControl: false,
+        maxZoom: 22,
+        minZoom: 1
+      }).setView([lastPosition.lat, lastPosition.lng], 15);
+
+      // Create tile layers
+      satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 22,
+        attribution: 'Tiles © Esri'
+      });
+      
+      streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 22,
+        attribution: '© OpenStreetMap'
+      });
+      
+      // Add default layer
+      satelliteLayer.addTo(map);
+      currentLayer = satelliteLayer;
+
+      // Create custom icon for the marker
+      const customIcon = L.divIcon({
+        html: '<div class="blinking-marker"><i class="fas fa-user" style="color: #4361ee; font-size: 24px;"></i></div>',
+        className: 'custom-marker',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+      });
+
+      // Add marker with custom icon
+      marker = L.marker([lastPosition.lat, lastPosition.lng], {
+        icon: customIcon,
+        zIndexOffset: 1000
+      }).addTo(map);
+
+      // Set up custom popup
+      marker.bindPopup(`
+        <div class="custom-popup">
+          <div class="popup-title">Sahil</div>
+          <div class="popup-address">Loading address...</div>
+          <div class="popup-time">Updating...</div>
+        </div>
+      `).openPopup();
+
+      // Add zoom controls
+      L.control.zoom({
+        position: 'topright'
+      }).addTo(map);
+
+      // Set up button events
+      document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
+      document.getElementById('zoom-out').addEventListener('click', () => map.zoomOut());
+      document.getElementById('locate-btn').addEventListener('click', centerMapOnMarker);
+      
+      // Map type selector events
+      document.getElementById('satellite-btn').addEventListener('click', () => {
+        map.removeLayer(currentLayer);
+        satelliteLayer.addTo(map);
+        currentLayer = satelliteLayer;
+        document.getElementById('satellite-btn').classList.add('active');
+        document.getElementById('street-btn').classList.remove('active');
+      });
+      
+      document.getElementById('street-btn').addEventListener('click', () => {
+        map.removeLayer(currentLayer);
+        streetLayer.addTo(map);
+        currentLayer = streetLayer;
+        document.getElementById('street-btn').classList.add('active');
+        document.getElementById('satellite-btn').classList.remove('active');
+      });
+      
+      // Toggle sidebar event
+      document.querySelector('.toggle-sidebar').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('sidebar-collapsed');
+      });
+
+      // Start periodic updates
+      fetchGPSCoordinates();
+      updateInterval = setInterval(fetchGPSCoordinates, 3000);
+    }
+
+    // Center map on the marker
+    function centerMapOnMarker() {
+      if (marker) {
+        map.setView(marker.getLatLng(), map.getZoom());
+      }
+    }
+
+    // Format time as "HH:MM:SS"
+    function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    // Format date as "DD/MM/YYYY"
+    function formatDate(date) {
+      return date.toLocaleDateString([], { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    // Update status card
+    function updateStatusCard(lat, lng, speed) {
+      const now = new Date();
+      document.getElementById('last-updated').textContent = `${formatTime(now)} ${formatDate(now)}`;
+      document.getElementById('speed-status').textContent = `${speed || 0} km/h`;
+      
+      // Simulate battery drain for demo
+      const batteryElement = document.getElementById('battery-status');
+      let battery = parseInt(batteryElement.textContent);
+      battery = battery <= 5 ? 85 : battery - 1;
+      batteryElement.textContent = `${battery}%`;
+      batteryElement.style.color = battery < 20 ? 'var(--danger-color)' : 'inherit';
+    }
+
+    // Fetch GPS coordinates
+    async function fetchGPSCoordinates() {
+      try {
+        const response = await fetch("http://localhost:3000/latest-location");
+        const { lat, lng } = await response.json();
+
+        if (lat && lng) {
+          lastPosition = { lat, lng };
+          
+          // Update marker position
+          marker.setLatLng([lat, lng]);
+          
+          // Center map on first update
+          if (isFirstUpdate) {
+            map.setView([lat, lng], 17);
+            isFirstUpdate = false;
+          }
+          
+          // Get address and update popup
+          const address = await getAddressFromGeoapify(lat, lng);
+          const now = new Date();
+          marker.setPopupContent(`
+            <div class="custom-popup">
+              <div class="popup-title">Sahil</div>
+              <div class="popup-address">${address}</div>
+              <div class="popup-time">Updated: ${formatTime(now)}</div>
+            </div>
+          `);
+          
+          // Update status card
+          updateStatusCard(lat, lng, calculateSpeed(lat, lng));
+        }
+      } catch (error) {
+        console.error("Update failed:", error);
+      }
+    }
+
+    // Calculate speed based on position change (simplified)
+    function calculateSpeed(newLat, newLng) {
+      // In a real app, you would calculate distance/time between points
+      // For demo, we'll return a random speed between 0-5 km/h
+      return Math.floor(Math.random() * 5);
+    }
+
+    // Call Geoapify API to reverse geocode
+    async function getAddressFromGeoapify(lat, lng) {
+      try {
+        const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${API_KEY}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+          const props = data.features[0].properties;
+          return `${props.address_line1 || ''}, ${props.city || ''}, ${props.country || ''}`.trim();
+        }
+        return "Address not available";
+      } catch (error) {
+        console.error("Geocoding error:", error);
+        return "Could not fetch address";
+      }
+    }
+
+    // Initialize map when page loads
+    window.onload = initMap;
+
+    // Add blinking animation for the marker
+    const style = document.createElement('style');
+    style.textContent = `
+      .blinking-marker {
+        animation: blink 2s infinite;
+        text-shadow: 0 0 5px white;
+      }
+      @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
