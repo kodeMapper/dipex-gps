@@ -1585,7 +1585,7 @@
         // Fetch GPS coordinates
         async function fetchGPSCoordinates() {
             try {
-                const response = await fetch("http://dipex-gps.vercel.app/latest-location");
+                const response = await fetch("https://dipex-gps.vercel.app/latest-location");
                 const { lat, lng } = await response.json();
 
                 if (lat && lng) {

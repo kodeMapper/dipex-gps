@@ -20,4 +20,4 @@ app.get("/latest-location", (req, res) => {
 });
 
 
-app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
+app.listen(3000, () => console.log("Backend running on https://dipex-gps.versel.app"));
