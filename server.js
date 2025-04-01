@@ -2,22 +2,24 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 
-// Add these lines ↓
-const bodyParser = require('body-parser');
-app.use(bodyParser.json()); // Parse JSON bodies
 app.use(cors());
+
+// Handle preflight requests
+app.options('*', cors());
+
+app.use(express.json());
 
 let latestLocation = { lat: 0, lng: 0 };
 
 app.post("/update-location", (req, res) => {
-  console.log("Received body:", req.body); // Debug log
+  console.log("Received:", req.body);
   latestLocation = req.body;
-  res.send("Location updated");
+  res.json({ status: "success", data: latestLocation });
 });
 
 app.get("/latest-location", (req, res) => {
   res.json(latestLocation);
 });
 
-
-app.listen(3000, () => console.log("Backend running on https://dipex-gps.versel.app"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
