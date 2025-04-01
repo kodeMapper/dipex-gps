@@ -1742,7 +1742,7 @@
 
     async function fetchGPSCoordinates() {
       try {
-        const response = await fetch("http://192.168.164.143:3000/latest-location");
+        const response = await fetch("https://dipex-gps.vercel.app/latest-location");
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
