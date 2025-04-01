@@ -11,13 +11,13 @@ app.use(express.json());
 
 let latestLocation = { lat: 0, lng: 0 };
 
-app.post("/update-location", (req, res) => {
+app.post("/api/update-location", (req, res) => {
   console.log("Received:", req.body);
   latestLocation = req.body;
   res.json({ status: "success", data: latestLocation });
 });
 
-app.get("/latest-location", (req, res) => {
+app.get("/api/latest-location", (req, res) => {
   res.json(latestLocation);
 });
 
