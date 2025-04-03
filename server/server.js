@@ -3,7 +3,7 @@ const cors = require("cors");
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://your-vercel-app-name.vercel.app'],
+  origin: ['http://localhost:3000', 'https://dipex-gps.vercel.app'],
   credentials: true
 }));
 
