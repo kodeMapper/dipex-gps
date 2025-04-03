@@ -38,11 +38,11 @@ app.post("/update-steps", (req, res) => {
   res.json({ totalSteps: currentSteps });
 });
 
-app.get("/latest-location", (req, res) => {
+app.get("api/latest-location", (req, res) => {
   res.json(latestLocation);
 });
 
-app.get("/latest-steps", (req, res) => {
+app.get("api/latest-steps", (req, res) => {
   res.json({ totalSteps: latestData.steps });  
 });
 
