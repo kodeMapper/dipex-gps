@@ -20,16 +20,29 @@ app.get('/api/test', (req, res) => {
 
 // Location update endpoint
 app.post('/api/update-location', (req, res) => {
-  console.log("Received location:", req.body);
-  latestData.location = req.body;
-  res.json({ status: "success", received: req.body });
+  console.log("Received:", req.body);
+  latestLocation = req.body;
+  res.json({ status: "success", data: latestLocation });
 });
 
 // Steps update endpoint
 app.post('/api/update-steps', (req, res) => {
-  console.log("Received steps:", req.body);
-  latestData.steps = req.body.steps;
-  res.json({ status: "success", received: req.body.steps });
+  const currentSteps = req.body.steps; // Absolute value
+  console.log("Received steps:", currentSteps);
+  
+  // Store the latest step count (not cumulative)
+  latestData.steps = currentSteps; 
+  latestData.lastUpdated = new Date();
+
+  res.json({ totalSteps: currentSteps });
+});
+
+app.get("/api/latest-location", (req, res) => {
+  res.json(latestLocation);
+});
+
+app.get("/api/latest-steps", (req, res) => {
+  res.json({ totalSteps: latestData.steps });  
 });
 
 const PORT = process.env.PORT || 3000;
